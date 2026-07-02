@@ -7,7 +7,7 @@ import { initAudio, playSfx, playMusic, stopMusic } from "./audio";
 
 type Screen = "menu" | "maps" | "tanks" | "bullets" | "game" | "victory" | "defeat";
 
-export default function BattleTanks() {
+export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => void }) {
   const [screen, setScreen] = useState<Screen>("menu");
   const [mapIdx, setMapIdx] = useState(0);
   const [tankIdx, setTankIdx] = useState(0);
@@ -111,6 +111,7 @@ export default function BattleTanks() {
               { l: "🗺  MAPS", a: () => { click(); setScreen("maps"); } },
               { l: "🛠  TANKS", a: () => { click(); setScreen("tanks"); } },
               { l: "💥  BALLES", a: () => { click(); setScreen("bullets"); } },
+              ...(onChangeGame ? [{ l: "🔄  CHANGER DE JEU", a: () => { click(); onChangeGame(); } }] : []),
             ].map((b, i) => (
               <button key={i} onClick={b.a}
                 className="group relative px-6 py-4 bg-[#1a1f10]/80 border-2 border-[#7a5a2a] hover:border-[#d4c9a8] hover:bg-[#2a3020]/90 transition-all duration-200 hover:scale-105 hover:translate-x-2 text-left tracking-widest font-bold">
