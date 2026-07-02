@@ -1,18 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import BattleTanks from "@/game/BattleTanks";
+import Platformer from "@/game/Platformer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Battle Tanks - Jeu de Tanks 2D" },
-      { name: "description", content: "Battle Tanks : jeu de tanks 2D top-down avec IA, cartes multiples, personnalisation et effets visuels modernes." },
-      { property: "og:title", content: "Battle Tanks" },
-      { property: "og:description", content: "Affrontez une IA redoutable dans un jeu de tanks 2D moderne." },
+      { title: "Arcade - Battle Tanks & Sky Dash" },
+      { name: "description", content: "Deux jeux en un : Battle Tanks (combat de tanks 2D top-down) et Sky Dash (plateformer avec pièces, ennemis et niveaux)." },
+      { property: "og:title", content: "Arcade - Battle Tanks & Sky Dash" },
+      { property: "og:description", content: "Deux jeux : combat de tanks et plateformer." },
     ],
   }),
   component: Index,
 });
 
+type Game = "tanks" | "platformer";
+
 function Index() {
-  return <BattleTanks />;
+  const [game, setGame] = useState<Game>("tanks");
+  if (game === "tanks") return <BattleTanks onChangeGame={() => setGame("platformer")} />;
+  return <Platformer onExit={() => setGame("tanks")} />;
 }
