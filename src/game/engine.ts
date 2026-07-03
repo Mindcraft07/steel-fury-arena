@@ -12,9 +12,14 @@ export type GameConfig = {
   tankName: string;
   cannonSize: number;
   tankSize: number;
+  mode?: "bot" | "2p";
+  primary2?: string;
+  secondary2?: string;
+  tankName2?: string;
   onVictory: (stats: { time: number; score: number }) => void;
   onDefeat: (stats: { time: number; score: number }) => void;
 };
+
 
 export type GameHandle = { destroy: () => void };
 
@@ -24,7 +29,7 @@ const WORLD_H = 1800;
 type Vec = { x: number; y: number };
 type Obstacle = { x: number; y: number; w: number; h: number; kind: "concrete" | "rock" | "wall" };
 type Decor = { x: number; y: number; type: string; color: string; size: number; rot: number };
-type Bullet = { x: number; y: number; vx: number; vy: number; life: number; owner: "player" | "ai"; damage: number; type: BulletType };
+type Bullet = { x: number; y: number; vx: number; vy: number; life: number; owner: Tank; damage: number; type: BulletType };
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; color: string; kind: "smoke" | "fire" | "spark" | "dust" | "debris" };
 
 type Tank = {
@@ -96,30 +101,34 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
   }
   const groundPattern = ctx.createPattern(groundTile, "repeat")!;
 
-  // Player
-  const player: Tank = spawnTank(false, 200, 200);
-  const ai: Tank = spawnTank(true, WORLD_W - 250, WORLD_H - 250);
+  const is2P = cfg.mode === "2p";
 
-  function spawnTank(isAI: boolean, x: number, y: number): Tank {
+  // Player
+  const player: Tank = spawnTank(false, false, 200, 200);
+  const ai: Tank = spawnTank(!is2P, true, WORLD_W - 250, WORLD_H - 250);
+
+  function spawnTank(isAI: boolean, isP2: boolean, x: number, y: number): Tank {
     return {
-      x, y, angle: 0, turretAngle: 0, vx: 0, vy: 0,
+      x, y, angle: isP2 ? Math.PI : 0, turretAngle: isP2 ? Math.PI : 0, vx: 0, vy: 0,
       hp: cfg.tankModel.hp, maxHp: cfg.tankModel.hp,
       lastShot: 0, trackOffset: 0,
       model: cfg.tankModel,
-      primary: isAI ? "#6a2020" : cfg.primary,
-      secondary: isAI ? "#3a1010" : cfg.secondary,
-      name: isAI ? "ENEMY" : cfg.tankName,
+      primary: isAI ? "#6a2020" : isP2 ? (cfg.primary2 ?? "#2a4a8a") : cfg.primary,
+      secondary: isAI ? "#3a1010" : isP2 ? (cfg.secondary2 ?? "#152540") : cfg.secondary,
+      name: isAI ? "ENEMY" : isP2 ? (cfg.tankName2 ?? "PLAYER-2") : cfg.tankName,
       scale: cfg.tankSize * cfg.tankModel.scale,
       cannonScale: cfg.cannonSize,
       isAI,
     };
   }
 
+
   const bullets: Bullet[] = [];
   const particles: Particle[] = [];
   let shake = 0;
   const cam: Vec = { x: player.x, y: player.y };
   let ammo = 30;
+  let ammo2 = 30;
   let score = 0;
   const start = performance.now();
   let last = start;
@@ -129,7 +138,10 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
 
   // Input
   const keys = new Set<string>();
-  const kd = (e: KeyboardEvent) => { keys.add(e.key.toLowerCase()); if (e.key === " ") e.preventDefault(); };
+  const kd = (e: KeyboardEvent) => {
+    keys.add(e.key.toLowerCase());
+    if (e.key === " " || e.key.startsWith("Arrow") || e.key === "Enter") e.preventDefault();
+  };
   const ku = (e: KeyboardEvent) => keys.delete(e.key.toLowerCase());
   window.addEventListener("keydown", kd);
   window.addEventListener("keyup", ku);
@@ -159,7 +171,10 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
   function fire(t: Tank, now: number) {
     if (now - t.lastShot < t.model.fireRate) return;
     t.lastShot = now;
-    if (!t.isAI) { if (ammo <= 0) return; ammo--; }
+    if (!t.isAI) {
+      if (t === player) { if (ammo <= 0) return; ammo--; }
+      else { if (ammo2 <= 0) return; ammo2--; }
+    }
     const rad = t.model.cannonLength * t.cannonScale * t.scale + 6;
     const bx = t.x + Math.cos(t.turretAngle) * rad;
     const by = t.y + Math.sin(t.turretAngle) * rad;
@@ -168,7 +183,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
       x: bx, y: by,
       vx: Math.cos(t.turretAngle) * bt.speed,
       vy: Math.sin(t.turretAngle) * bt.speed,
-      life: 120, owner: t.isAI ? "ai" : "player", damage: bt.damage, type: bt,
+      life: 120, owner: t, damage: bt.damage, type: bt,
     });
     // recoil
     t.vx -= Math.cos(t.turretAngle) * 0.8;
@@ -182,9 +197,9 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
       particles.push({ x: bx, y: by, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, life: 30, maxLife: 30, size: 4, color: "#888", kind: "smoke" });
     }
     shake = Math.max(shake, t.isAI ? 3 : 6);
-    if (!t.isAI) playSfx("shoot");
-    else playSfx("shoot");
+    playSfx("shoot");
   }
+
 
   function explode(x: number, y: number, big: boolean) {
     const n = big ? 60 : 30;
@@ -256,7 +271,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     // dodge bullets
     let dodge = 0;
     for (const b of bullets) {
-      if (b.owner !== "player") continue;
+      if (b.owner === ai) continue;
       const bdx = ai.x - b.x, bdy = ai.y - b.y;
       const d = Math.hypot(bdx, bdy);
       if (d < 200) {
@@ -298,18 +313,30 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     fpsAcc += 1 / Math.max(0.001, dt); fpsCount++;
     fpsTimer += dt; if (fpsTimer > 0.5) { fps = fpsAcc / fpsCount; fpsAcc = 0; fpsCount = 0; fpsTimer = 0; }
 
-    // player input
-    const fw = (keys.has("z") || keys.has("arrowup") ? 1 : 0) - (keys.has("s") || keys.has("arrowdown") ? 1 : 0);
-    const tr = (keys.has("d") || keys.has("arrowright") ? 1 : 0) - (keys.has("q") || keys.has("arrowleft") ? 1 : 0);
+    // player 1 input (ZQSD + space)
+    const fw = (keys.has("z") ? 1 : 0) - (keys.has("s") ? 1 : 0);
+    const tr = (keys.has("d") ? 1 : 0) - (keys.has("q") ? 1 : 0);
     updateTank(player, fw, tr, dt);
-    // turret follows body smoothly with slight lead
     let ta = player.angle - player.turretAngle;
     while (ta > Math.PI) ta -= Math.PI * 2;
     while (ta < -Math.PI) ta += Math.PI * 2;
     player.turretAngle += ta * 0.15;
     if (keys.has(" ")) fire(player, now);
 
-    runAI(now, dt);
+    if (is2P) {
+      // player 2 input (arrows + Enter)
+      const fw2 = (keys.has("arrowup") ? 1 : 0) - (keys.has("arrowdown") ? 1 : 0);
+      const tr2 = (keys.has("arrowright") ? 1 : 0) - (keys.has("arrowleft") ? 1 : 0);
+      updateTank(ai, fw2, tr2, dt);
+      let ta2 = ai.angle - ai.turretAngle;
+      while (ta2 > Math.PI) ta2 -= Math.PI * 2;
+      while (ta2 < -Math.PI) ta2 += Math.PI * 2;
+      ai.turretAngle += ta2 * 0.15;
+      if (keys.has("enter")) fire(ai, now);
+    } else {
+      runAI(now, dt);
+    }
+
 
     // bullets
     for (let i = bullets.length - 1; i >= 0; i--) {
@@ -322,7 +349,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
       }
       let hit = false;
       // hit tanks
-      const targets: Tank[] = b.owner === "player" ? [ai] : [player];
+      const targets: Tank[] = b.owner === player ? [ai] : [player];
       for (const tg of targets) {
         if (Math.hypot(tg.x - b.x, tg.y - b.y) < 22 * tg.scale) {
           tg.hp -= b.damage;
@@ -333,7 +360,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
             ended = true;
             const timeSec = (now - start) / 1000;
             setTimeout(() => {
-              if (tg.isAI) { score = Math.max(0, 1000 - Math.floor(timeSec * 5)); cfg.onVictory({ time: timeSec, score }); }
+              if (tg === ai) { score = Math.max(0, 1000 - Math.floor(timeSec * 5)); cfg.onVictory({ time: timeSec, score }); }
               else cfg.onDefeat({ time: timeSec, score: Math.floor(timeSec) });
             }, 600);
           }
@@ -360,8 +387,10 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     }
 
     // camera
-    cam.x += (player.x - cam.x) * 0.1;
-    cam.y += (player.y - cam.y) * 0.1;
+    const camTx = is2P ? (player.x + ai.x) / 2 : player.x;
+    const camTy = is2P ? (player.y + ai.y) / 2 : player.y;
+    cam.x += (camTx - cam.x) * 0.1;
+    cam.y += (camTy - cam.y) * 0.1;
     shake *= 0.85;
 
     render();
@@ -511,7 +540,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     ctx.restore();
 
     // name plate
-    ctx.fillStyle = t.isAI ? "#ff4040" : "#40ff80";
+    ctx.fillStyle = t === player ? "#40ff80" : is2P ? "#60a0ff" : "#ff4040";
     ctx.font = "bold 11px monospace"; ctx.textAlign = "center";
     ctx.fillText(t.name, t.x, t.y - 30 * s);
     // hp bar
@@ -558,23 +587,28 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
       ctx.fillStyle = col; ctx.fillRect(x + 2, y + 2, (w - 4) * val, 18);
       ctx.fillStyle = "#fff"; ctx.font = "bold 11px monospace"; ctx.textAlign = "left"; ctx.fillText(label, x + 6, y + 15);
     };
-    bar(20, 20, 300, player.hp / player.maxHp, `${cfg.tankName}  ${player.hp | 0}/${player.maxHp}`, "#40a060");
-    bar(width - 320, 20, 300, ai.hp / ai.maxHp, `ENEMY  ${ai.hp | 0}/${ai.maxHp}`, "#a04040");
+    bar(20, 20, 300, player.hp / player.maxHp, `${player.name}  ${player.hp | 0}/${player.maxHp}`, "#40a060");
+    bar(width - 320, 20, 300, ai.hp / ai.maxHp, `${ai.name}  ${ai.hp | 0}/${ai.maxHp}`, is2P ? "#4060a0" : "#a04040");
 
     // bottom stats
     ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, height - 70, width, 70);
     ctx.fillStyle = "#d4c9a8"; ctx.font = "bold 12px monospace"; ctx.textAlign = "left";
-    ctx.fillText(`AMMO: ${ammo}`, 20, height - 44);
-    ctx.fillText(`TANK: ${cfg.tankName}`, 20, height - 26);
+    ctx.fillText(`AMMO P1: ${ammo}`, 20, height - 44);
+    ctx.fillText(`TANK: ${player.name}`, 20, height - 26);
     ctx.fillText(`MAP: ${cfg.map.name}`, 200, height - 44);
     ctx.fillText(`AMMO TYPE: ${cfg.bulletType.name}`, 200, height - 26);
     ctx.fillText(`FPS: ${fps.toFixed(0)}`, 400, height - 44);
     const t = (performance.now() - start) / 1000;
     ctx.fillText(`TIME: ${t.toFixed(1)}s`, 400, height - 26);
+    if (is2P) ctx.fillText(`AMMO P2: ${ammo2}`, 500, height - 44);
 
     // controls
     ctx.textAlign = "right";
-    ctx.fillText("Z/S: AVANCER/RECULER  Q/D: TOURNER  ESPACE: TIRER", width - 20, height - 26);
+    if (is2P) {
+      ctx.fillText("P1: Z/Q/S/D + ESPACE   P2: FLECHES + ENTREE", width - 20, height - 26);
+    } else {
+      ctx.fillText("Z/S: AVANCER/RECULER  Q/D: TOURNER  ESPACE: TIRER", width - 20, height - 26);
+    }
 
     // radar
     const rs = 140;
@@ -583,13 +617,14 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     ctx.strokeStyle = "#40ff80"; ctx.lineWidth = 2; ctx.strokeRect(rx, ry, rs, rs);
     const sx = rs / WORLD_W, sy = rs / WORLD_H;
     ctx.fillStyle = "#40ff80"; ctx.fillRect(rx + player.x * sx - 2, ry + player.y * sy - 2, 4, 4);
-    ctx.fillStyle = "#ff4040"; ctx.fillRect(rx + ai.x * sx - 2, ry + ai.y * sy - 2, 4, 4);
+    ctx.fillStyle = is2P ? "#60a0ff" : "#ff4040"; ctx.fillRect(rx + ai.x * sx - 2, ry + ai.y * sy - 2, 4, 4);
     ctx.fillStyle = "rgba(255,255,255,0.2)";
     for (const o of obstacles) if (o.kind === "concrete") ctx.fillRect(rx + o.x * sx, ry + o.y * sy, Math.max(1, o.w * sx), Math.max(1, o.h * sy));
     ctx.fillStyle = "#40ff80"; ctx.font = "bold 10px monospace"; ctx.textAlign = "left"; ctx.fillText("RADAR", rx + 6, ry + 14);
 
     // ammo regen visualization
     if (ammo < 30 && Math.random() < 0.02) ammo++;
+    if (is2P && ammo2 < 30 && Math.random() < 0.02) ammo2++;
   }
 
   let raf = requestAnimationFrame(step);

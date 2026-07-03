@@ -17,6 +17,7 @@ export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => voi
   const [tankName, setTankName] = useState("PANZER-01");
   const [cannonSize, setCannonSize] = useState(1);
   const [tankSize, setTankSize] = useState(1);
+  const [mode, setMode] = useState<"bot" | "2p">("bot");
   const [stats, setStats] = useState<{ time: number; score: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -82,13 +83,15 @@ export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => voi
       tankModel: TANK_MODELS[tankIdx],
       bulletType: BULLET_TYPES[bulletIdx],
       primary, secondary, tankName, cannonSize, tankSize,
+      mode,
+      primary2: "#2a4a8a", secondary2: "#152540", tankName2: "PLAYER-2",
       onVictory: (s) => { setStats(s); setScreen("victory"); stopMusic(); playSfx("victory"); },
       onDefeat: (s) => { setStats(s); setScreen("defeat"); stopMusic(); playSfx("defeat"); },
     };
     gameRef.current = createGame(canvas, config);
     playMusic("battle");
     return () => { gameRef.current?.destroy(); stopMusic(); };
-  }, [screen, mapIdx, tankIdx, bulletIdx, primary, secondary, tankName, cannonSize, tankSize]);
+  }, [screen, mapIdx, tankIdx, bulletIdx, primary, secondary, tankName, cannonSize, tankSize, mode]);
 
   const click = () => { initAudio(); playSfx("click"); };
 
@@ -108,6 +111,7 @@ export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => voi
           <div className="flex flex-col gap-3 w-72">
             {[
               { l: "▶  JOUER", a: () => { click(); setScreen("game"); } },
+              { l: `👥  MODE: ${mode === "bot" ? "SOLO vs BOT" : "2 JOUEURS"}`, a: () => { click(); setMode(mode === "bot" ? "2p" : "bot"); } },
               { l: "🗺  MAPS", a: () => { click(); setScreen("maps"); } },
               { l: "🛠  TANKS", a: () => { click(); setScreen("tanks"); } },
               { l: "💥  BALLES", a: () => { click(); setScreen("bullets"); } },
@@ -201,7 +205,7 @@ export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => voi
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen animate-fade-in">
           <div className={`text-8xl font-black tracking-widest ${screen === "victory" ? "text-[#d4c9a8]" : "text-[#a03020]"}`}
                style={{ textShadow: screen === "victory" ? "0 0 40px #7a5a2a" : "0 0 40px #a03020" }}>
-            {screen === "victory" ? "VICTOIRE" : "DÉFAITE"}
+            {mode === "2p" ? (screen === "victory" ? "JOUEUR 1 GAGNE" : "JOUEUR 2 GAGNE") : (screen === "victory" ? "VICTOIRE" : "DÉFAITE")}
           </div>
           <div className="mt-8 text-2xl tracking-widest">TEMPS: {stats.time.toFixed(1)}s</div>
           <div className="text-2xl tracking-widest">SCORE: {stats.score}</div>
