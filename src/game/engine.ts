@@ -12,9 +12,14 @@ export type GameConfig = {
   tankName: string;
   cannonSize: number;
   tankSize: number;
+  mode?: "bot" | "2p";
+  primary2?: string;
+  secondary2?: string;
+  tankName2?: string;
   onVictory: (stats: { time: number; score: number }) => void;
   onDefeat: (stats: { time: number; score: number }) => void;
 };
+
 
 export type GameHandle = { destroy: () => void };
 
