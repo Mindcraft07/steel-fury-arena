@@ -205,7 +205,7 @@ export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => voi
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen animate-fade-in">
           <div className={`text-8xl font-black tracking-widest ${screen === "victory" ? "text-[#d4c9a8]" : "text-[#a03020]"}`}
                style={{ textShadow: screen === "victory" ? "0 0 40px #7a5a2a" : "0 0 40px #a03020" }}>
-            {screen === "victory" ? "VICTOIRE" : "DÉFAITE"}
+            {mode === "2p" ? (screen === "victory" ? "JOUEUR 1 GAGNE" : "JOUEUR 2 GAGNE") : (screen === "victory" ? "VICTOIRE" : "DÉFAITE")}
           </div>
           <div className="mt-8 text-2xl tracking-widest">TEMPS: {stats.time.toFixed(1)}s</div>
           <div className="text-2xl tracking-widest">SCORE: {stats.score}</div>
