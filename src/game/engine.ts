@@ -587,23 +587,28 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
       ctx.fillStyle = col; ctx.fillRect(x + 2, y + 2, (w - 4) * val, 18);
       ctx.fillStyle = "#fff"; ctx.font = "bold 11px monospace"; ctx.textAlign = "left"; ctx.fillText(label, x + 6, y + 15);
     };
-    bar(20, 20, 300, player.hp / player.maxHp, `${cfg.tankName}  ${player.hp | 0}/${player.maxHp}`, "#40a060");
-    bar(width - 320, 20, 300, ai.hp / ai.maxHp, `ENEMY  ${ai.hp | 0}/${ai.maxHp}`, "#a04040");
+    bar(20, 20, 300, player.hp / player.maxHp, `${player.name}  ${player.hp | 0}/${player.maxHp}`, "#40a060");
+    bar(width - 320, 20, 300, ai.hp / ai.maxHp, `${ai.name}  ${ai.hp | 0}/${ai.maxHp}`, is2P ? "#4060a0" : "#a04040");
 
     // bottom stats
     ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, height - 70, width, 70);
     ctx.fillStyle = "#d4c9a8"; ctx.font = "bold 12px monospace"; ctx.textAlign = "left";
-    ctx.fillText(`AMMO: ${ammo}`, 20, height - 44);
-    ctx.fillText(`TANK: ${cfg.tankName}`, 20, height - 26);
+    ctx.fillText(`AMMO P1: ${ammo}`, 20, height - 44);
+    ctx.fillText(`TANK: ${player.name}`, 20, height - 26);
     ctx.fillText(`MAP: ${cfg.map.name}`, 200, height - 44);
     ctx.fillText(`AMMO TYPE: ${cfg.bulletType.name}`, 200, height - 26);
     ctx.fillText(`FPS: ${fps.toFixed(0)}`, 400, height - 44);
     const t = (performance.now() - start) / 1000;
     ctx.fillText(`TIME: ${t.toFixed(1)}s`, 400, height - 26);
+    if (is2P) ctx.fillText(`AMMO P2: ${ammo2}`, 500, height - 44);
 
     // controls
     ctx.textAlign = "right";
-    ctx.fillText("Z/S: AVANCER/RECULER  Q/D: TOURNER  ESPACE: TIRER", width - 20, height - 26);
+    if (is2P) {
+      ctx.fillText("P1: Z/Q/S/D + ESPACE   P2: FLECHES + ENTREE", width - 20, height - 26);
+    } else {
+      ctx.fillText("Z/S: AVANCER/RECULER  Q/D: TOURNER  ESPACE: TIRER", width - 20, height - 26);
+    }
 
     // radar
     const rs = 140;
@@ -612,7 +617,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     ctx.strokeStyle = "#40ff80"; ctx.lineWidth = 2; ctx.strokeRect(rx, ry, rs, rs);
     const sx = rs / WORLD_W, sy = rs / WORLD_H;
     ctx.fillStyle = "#40ff80"; ctx.fillRect(rx + player.x * sx - 2, ry + player.y * sy - 2, 4, 4);
-    ctx.fillStyle = "#ff4040"; ctx.fillRect(rx + ai.x * sx - 2, ry + ai.y * sy - 2, 4, 4);
+    ctx.fillStyle = is2P ? "#60a0ff" : "#ff4040"; ctx.fillRect(rx + ai.x * sx - 2, ry + ai.y * sy - 2, 4, 4);
     ctx.fillStyle = "rgba(255,255,255,0.2)";
     for (const o of obstacles) if (o.kind === "concrete") ctx.fillRect(rx + o.x * sx, ry + o.y * sy, Math.max(1, o.w * sx), Math.max(1, o.h * sy));
     ctx.fillStyle = "#40ff80"; ctx.font = "bold 10px monospace"; ctx.textAlign = "left"; ctx.fillText("RADAR", rx + 6, ry + 14);
