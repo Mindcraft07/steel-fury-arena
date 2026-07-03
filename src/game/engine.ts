@@ -138,7 +138,10 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
 
   // Input
   const keys = new Set<string>();
-  const kd = (e: KeyboardEvent) => { keys.add(e.key.toLowerCase()); if (e.key === " ") e.preventDefault(); };
+  const kd = (e: KeyboardEvent) => {
+    keys.add(e.key.toLowerCase());
+    if (e.key === " " || e.key.startsWith("Arrow") || e.key === "Enter") e.preventDefault();
+  };
   const ku = (e: KeyboardEvent) => keys.delete(e.key.toLowerCase());
   window.addEventListener("keydown", kd);
   window.addEventListener("keyup", ku);
