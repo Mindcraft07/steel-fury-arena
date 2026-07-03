@@ -624,6 +624,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
 
     // ammo regen visualization
     if (ammo < 30 && Math.random() < 0.02) ammo++;
+    if (is2P && ammo2 < 30 && Math.random() < 0.02) ammo2++;
   }
 
   let raf = requestAnimationFrame(step);
