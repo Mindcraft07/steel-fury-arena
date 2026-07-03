@@ -91,7 +91,7 @@ export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => voi
     gameRef.current = createGame(canvas, config);
     playMusic("battle");
     return () => { gameRef.current?.destroy(); stopMusic(); };
-  }, [screen, mapIdx, tankIdx, bulletIdx, primary, secondary, tankName, cannonSize, tankSize]);
+  }, [screen, mapIdx, tankIdx, bulletIdx, primary, secondary, tankName, cannonSize, tankSize, mode]);
 
   const click = () => { initAudio(); playSfx("click"); };
 
