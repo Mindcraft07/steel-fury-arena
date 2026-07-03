@@ -168,7 +168,10 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
   function fire(t: Tank, now: number) {
     if (now - t.lastShot < t.model.fireRate) return;
     t.lastShot = now;
-    if (!t.isAI) { if (ammo <= 0) return; ammo--; }
+    if (!t.isAI) {
+      if (t === player) { if (ammo <= 0) return; ammo--; }
+      else { if (ammo2 <= 0) return; ammo2--; }
+    }
     const rad = t.model.cannonLength * t.cannonScale * t.scale + 6;
     const bx = t.x + Math.cos(t.turretAngle) * rad;
     const by = t.y + Math.sin(t.turretAngle) * rad;
@@ -177,7 +180,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
       x: bx, y: by,
       vx: Math.cos(t.turretAngle) * bt.speed,
       vy: Math.sin(t.turretAngle) * bt.speed,
-      life: 120, owner: t.isAI ? "ai" : "player", damage: bt.damage, type: bt,
+      life: 120, owner: t, damage: bt.damage, type: bt,
     });
     // recoil
     t.vx -= Math.cos(t.turretAngle) * 0.8;
@@ -191,9 +194,9 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
       particles.push({ x: bx, y: by, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, life: 30, maxLife: 30, size: 4, color: "#888", kind: "smoke" });
     }
     shake = Math.max(shake, t.isAI ? 3 : 6);
-    if (!t.isAI) playSfx("shoot");
-    else playSfx("shoot");
+    playSfx("shoot");
   }
+
 
   function explode(x: number, y: number, big: boolean) {
     const n = big ? 60 : 30;
