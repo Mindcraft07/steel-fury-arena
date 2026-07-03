@@ -334,7 +334,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
       }
       let hit = false;
       // hit tanks
-      const targets: Tank[] = b.owner === "player" ? [ai] : [player];
+      const targets: Tank[] = b.owner === player ? [ai] : [player];
       for (const tg of targets) {
         if (Math.hypot(tg.x - b.x, tg.y - b.y) < 22 * tg.scale) {
           tg.hp -= b.damage;
