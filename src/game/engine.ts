@@ -387,8 +387,10 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     }
 
     // camera
-    cam.x += (player.x - cam.x) * 0.1;
-    cam.y += (player.y - cam.y) * 0.1;
+    const camTx = is2P ? (player.x + ai.x) / 2 : player.x;
+    const camTy = is2P ? (player.y + ai.y) / 2 : player.y;
+    cam.x += (camTx - cam.x) * 0.1;
+    cam.y += (camTy - cam.y) * 0.1;
     shake *= 0.85;
 
     render();
