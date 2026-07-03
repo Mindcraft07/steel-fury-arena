@@ -83,6 +83,8 @@ export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => voi
       tankModel: TANK_MODELS[tankIdx],
       bulletType: BULLET_TYPES[bulletIdx],
       primary, secondary, tankName, cannonSize, tankSize,
+      mode,
+      primary2: "#2a4a8a", secondary2: "#152540", tankName2: "PLAYER-2",
       onVictory: (s) => { setStats(s); setScreen("victory"); stopMusic(); playSfx("victory"); },
       onDefeat: (s) => { setStats(s); setScreen("defeat"); stopMusic(); playSfx("defeat"); },
     };
