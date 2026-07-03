@@ -360,7 +360,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
             ended = true;
             const timeSec = (now - start) / 1000;
             setTimeout(() => {
-              if (tg.isAI) { score = Math.max(0, 1000 - Math.floor(timeSec * 5)); cfg.onVictory({ time: timeSec, score }); }
+              if (tg === ai) { score = Math.max(0, 1000 - Math.floor(timeSec * 5)); cfg.onVictory({ time: timeSec, score }); }
               else cfg.onDefeat({ time: timeSec, score: Math.floor(timeSec) });
             }, 600);
           }
