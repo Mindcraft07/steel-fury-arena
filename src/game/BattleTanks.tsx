@@ -111,6 +111,7 @@ export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => voi
           <div className="flex flex-col gap-3 w-72">
             {[
               { l: "▶  JOUER", a: () => { click(); setScreen("game"); } },
+              { l: `👥  MODE: ${mode === "bot" ? "SOLO vs BOT" : "2 JOUEURS"}`, a: () => { click(); setMode(mode === "bot" ? "2p" : "bot"); } },
               { l: "🗺  MAPS", a: () => { click(); setScreen("maps"); } },
               { l: "🛠  TANKS", a: () => { click(); setScreen("tanks"); } },
               { l: "💥  BALLES", a: () => { click(); setScreen("bullets"); } },
