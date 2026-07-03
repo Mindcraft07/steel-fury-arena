@@ -540,7 +540,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     ctx.restore();
 
     // name plate
-    ctx.fillStyle = t.isAI ? "#ff4040" : "#40ff80";
+    ctx.fillStyle = t === player ? "#40ff80" : is2P ? "#60a0ff" : "#ff4040";
     ctx.font = "bold 11px monospace"; ctx.textAlign = "center";
     ctx.fillText(t.name, t.x, t.y - 30 * s);
     // hp bar
