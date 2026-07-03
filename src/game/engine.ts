@@ -128,6 +128,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
   let shake = 0;
   const cam: Vec = { x: player.x, y: player.y };
   let ammo = 30;
+  let ammo2 = 30;
   let score = 0;
   const start = performance.now();
   let last = start;
