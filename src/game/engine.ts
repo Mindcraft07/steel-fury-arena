@@ -268,7 +268,7 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     // dodge bullets
     let dodge = 0;
     for (const b of bullets) {
-      if (b.owner !== "player") continue;
+      if (b.owner === ai) continue;
       const bdx = ai.x - b.x, bdy = ai.y - b.y;
       const d = Math.hypot(bdx, bdy);
       if (d < 200) {
