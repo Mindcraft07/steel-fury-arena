@@ -313,18 +313,30 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
     fpsAcc += 1 / Math.max(0.001, dt); fpsCount++;
     fpsTimer += dt; if (fpsTimer > 0.5) { fps = fpsAcc / fpsCount; fpsAcc = 0; fpsCount = 0; fpsTimer = 0; }
 
-    // player input
-    const fw = (keys.has("z") || keys.has("arrowup") ? 1 : 0) - (keys.has("s") || keys.has("arrowdown") ? 1 : 0);
-    const tr = (keys.has("d") || keys.has("arrowright") ? 1 : 0) - (keys.has("q") || keys.has("arrowleft") ? 1 : 0);
+    // player 1 input (ZQSD + space)
+    const fw = (keys.has("z") ? 1 : 0) - (keys.has("s") ? 1 : 0);
+    const tr = (keys.has("d") ? 1 : 0) - (keys.has("q") ? 1 : 0);
     updateTank(player, fw, tr, dt);
-    // turret follows body smoothly with slight lead
     let ta = player.angle - player.turretAngle;
     while (ta > Math.PI) ta -= Math.PI * 2;
     while (ta < -Math.PI) ta += Math.PI * 2;
     player.turretAngle += ta * 0.15;
     if (keys.has(" ")) fire(player, now);
 
-    runAI(now, dt);
+    if (is2P) {
+      // player 2 input (arrows + Enter)
+      const fw2 = (keys.has("arrowup") ? 1 : 0) - (keys.has("arrowdown") ? 1 : 0);
+      const tr2 = (keys.has("arrowright") ? 1 : 0) - (keys.has("arrowleft") ? 1 : 0);
+      updateTank(ai, fw2, tr2, dt);
+      let ta2 = ai.angle - ai.turretAngle;
+      while (ta2 > Math.PI) ta2 -= Math.PI * 2;
+      while (ta2 < -Math.PI) ta2 += Math.PI * 2;
+      ai.turretAngle += ta2 * 0.15;
+      if (keys.has("enter")) fire(ai, now);
+    } else {
+      runAI(now, dt);
+    }
+
 
     // bullets
     for (let i = bullets.length - 1; i >= 0; i--) {
