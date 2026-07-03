@@ -29,7 +29,7 @@ const WORLD_H = 1800;
 type Vec = { x: number; y: number };
 type Obstacle = { x: number; y: number; w: number; h: number; kind: "concrete" | "rock" | "wall" };
 type Decor = { x: number; y: number; type: string; color: string; size: number; rot: number };
-type Bullet = { x: number; y: number; vx: number; vy: number; life: number; owner: "player" | "ai"; damage: number; type: BulletType };
+type Bullet = { x: number; y: number; vx: number; vy: number; life: number; owner: Tank; damage: number; type: BulletType };
 type Particle = { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; color: string; kind: "smoke" | "fire" | "spark" | "dust" | "debris" };
 
 type Tank = {
