@@ -101,24 +101,27 @@ export function createGame(canvas: HTMLCanvasElement, cfg: GameConfig): GameHand
   }
   const groundPattern = ctx.createPattern(groundTile, "repeat")!;
 
-  // Player
-  const player: Tank = spawnTank(false, 200, 200);
-  const ai: Tank = spawnTank(true, WORLD_W - 250, WORLD_H - 250);
+  const is2P = cfg.mode === "2p";
 
-  function spawnTank(isAI: boolean, x: number, y: number): Tank {
+  // Player
+  const player: Tank = spawnTank(false, false, 200, 200);
+  const ai: Tank = spawnTank(!is2P, true, WORLD_W - 250, WORLD_H - 250);
+
+  function spawnTank(isAI: boolean, isP2: boolean, x: number, y: number): Tank {
     return {
-      x, y, angle: 0, turretAngle: 0, vx: 0, vy: 0,
+      x, y, angle: isP2 ? Math.PI : 0, turretAngle: isP2 ? Math.PI : 0, vx: 0, vy: 0,
       hp: cfg.tankModel.hp, maxHp: cfg.tankModel.hp,
       lastShot: 0, trackOffset: 0,
       model: cfg.tankModel,
-      primary: isAI ? "#6a2020" : cfg.primary,
-      secondary: isAI ? "#3a1010" : cfg.secondary,
-      name: isAI ? "ENEMY" : cfg.tankName,
+      primary: isAI ? "#6a2020" : isP2 ? (cfg.primary2 ?? "#2a4a8a") : cfg.primary,
+      secondary: isAI ? "#3a1010" : isP2 ? (cfg.secondary2 ?? "#152540") : cfg.secondary,
+      name: isAI ? "ENEMY" : isP2 ? (cfg.tankName2 ?? "PLAYER-2") : cfg.tankName,
       scale: cfg.tankSize * cfg.tankModel.scale,
       cannonScale: cfg.cannonSize,
       isAI,
     };
   }
+
 
   const bullets: Bullet[] = [];
   const particles: Particle[] = [];
