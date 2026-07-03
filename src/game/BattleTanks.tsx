@@ -17,6 +17,7 @@ export default function BattleTanks({ onChangeGame }: { onChangeGame?: () => voi
   const [tankName, setTankName] = useState("PANZER-01");
   const [cannonSize, setCannonSize] = useState(1);
   const [tankSize, setTankSize] = useState(1);
+  const [mode, setMode] = useState<"bot" | "2p">("bot");
   const [stats, setStats] = useState<{ time: number; score: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
